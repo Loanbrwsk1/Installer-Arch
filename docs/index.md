@@ -145,7 +145,7 @@ mount --mkdir /dev/mapper/home /mnt/home
 ## Installation
 
 ```bash
-pacstrap -K /mnt base linux linux-firmware grub net-tools sudo glibc nano networkmanager network-manager-applet efibootmgr
+pacstrap -K /mnt base linux linux-firmware grub net-tools sudo glibc nano networkmanager network-manager-applet
 ```
 
 Ajouter le paquet ```efibootmgr``` pour EFI
