@@ -1,0 +1,33 @@
+h1 {
+    background-color: rgb(64, 81, 181);
+    color: rgb(230, 230, 230);;
+    text-align: center;
+}
+
+#arch-installation{
+    color: rgb(230, 230, 230);
+}
+
+h2, h3{
+    background-color: rgb(64, 81, 181);
+    width: fit-content;
+    color: rgb(230, 230, 230);
+}
+
+#attention, #veuillez-bien-lire-les-commentaires-dans-le-code{
+    background-color: red;
+    color: white;
+    width: 100%;
+    font-size: 30px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 0;
+    margin-top: 0;
+    padding-bottom: 10px;
+}
+.warning {
+    background-color: red;
+    color: white;
+    font-size: 30px;
+    text-align: center;
+}
