@@ -165,14 +165,14 @@ hwclock --systohc
 nano /etc/locale.gen
 locale-gen
 nano /etc/locale.conf    #On écrit : LANG=fr_FR.UTF-8
-nano /etc/vconsole.conf  #On écrit  :KEYMAP=fr-latin1
-nano /etc/hostanme : arch
+nano /etc/vconsole.conf  #On écrit :KEYMAP=fr-latin1
+nano /etc/hostanme       #On écrit : arch
 
 mkinitcpio -P
 
 passwd
-useradd -G wheel -m <username>
-passwd <username>
+useradd -G wheel -m <nom d'utilisateur>
+passwd <nom d'utilisateur>
 ```
 
 ## Installation du GRUB
@@ -203,6 +203,7 @@ reboot
 
 ```bash
 login : root
+#On rentre le mot de passe root qu'on a crée avec la command passwd (donc pas celui de votre utilisateur)
 
 nano /etc/sudoers #Décommenter %wheel ALL=(ALL:ALL) ALL
 
@@ -220,6 +221,10 @@ systemctl start gdm.service
 ### Pour KDE et Hyprland
 
 ```bash
-systemctl enable gdm.service
-systemctl start gdm.service
+systemctl enable sddm.service
+systemctl start sddm.service
 ```
+
+## Fin
+
+Bravo à vous ! Vous venez d'installer Arch Linux ! Maintenant libre à vous de l'utiliser comme bon vous semble.
