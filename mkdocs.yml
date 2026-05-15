@@ -3,7 +3,7 @@ site_url: https://mydomain.org/mysite/
 
 theme:
   name: material
-  language: en
+  language: fr
   palette:
     # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
@@ -47,4 +47,3 @@ extra_css:
 plugins:
   - search
   - offline
-

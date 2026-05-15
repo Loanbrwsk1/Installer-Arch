@@ -5,16 +5,17 @@ h1 {
     border-radius: 30px;
 }
 
-#arch-installation{
+#arch-installation, #bios, #bios-chiffree, #bios-classique, #bios-chiffree-classique, #bios-chiffree-lvm, #bios-classique-classique, #bios-classique-lvm, #efi, #efi-chiffree, #efi-classique, #efi-chiffree-classique, #efi-chiffree-lvm, #efi-classique-classique, #efi-classique-lvm{
     color: rgb(230, 230, 230);
 }
 
-h2, h3{
+h2, h3, h4{
     background-color: rgb(64, 81, 181);
     width: fit-content;
     color: rgb(230, 230, 230);
     padding: 10px;
     border-radius: 20px;
+    font-weight: bold;
 }
 
 #attention, #veuillez-bien-lire-les-commentaires-dans-le-code{
@@ -29,4 +30,8 @@ h2, h3{
     padding: 0;
     padding-bottom: 10px;
     border-radius: 0;
+}
+
+.md-ellipsis {
+    font-weight: bold;
 }
