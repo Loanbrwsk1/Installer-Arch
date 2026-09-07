@@ -1267,6 +1267,141 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#attention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#veuillez-bien-lire-les-commentaires-dans-le-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Veuillez bien lire les commentaires dans le code !
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#carte-wi-fi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Carte Wi-Fi
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#partitionnement-du-disque" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Partitionnement du disque
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-du-grub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration du GRUB
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#finaliser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finaliser
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Finaliser">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pour-gnome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pour GNOME
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pour-kde-et-hyprland" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pour KDE et Hyprland
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quitter-et-redemarrer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quitter et redémarrer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fin
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1371,7 +1506,120 @@
 
 
 <h1 id="efi-classique-classique">EFI - Classique - Classique</h1>
-<p>Coming soon...</p>
+<h2 id="attention">Attention</h2>
+<h2 id="veuillez-bien-lire-les-commentaires-dans-le-code">Veuillez bien lire les commentaires dans le code !</h2>
+<h2 id="carte-wi-fi">Carte Wi-Fi</h2>
+<p>Si vous avez une carte Wi-Fi, connectez-vous à votre réseau :</p>
+<pre><code class="language-bash">iwctl
+device list
+
+device &lt;name&gt; set-property Powered on       # Si off
+adapter &lt;adapter&gt; set-property Powered on   # Si off
+
+station &lt;name&gt; scan
+station &lt;name&gt; get-networks
+station &lt;name&gt; connect SSID
+
+station &lt;name&gt; connect-hidden SSID          # Si caché
+</code></pre>
+<h2 id="partitionnement-du-disque">Partitionnement du disque</h2>
+<p>Ici, nous allons faire 3 partitions :</p>
+<ul>
+<li>EFI</li>
+<li>/</li>
+<li>/home</li>
+</ul>
+<pre><code class="language-bash">cfdisk
+</code></pre>
+<p>On choisit le 1ère option : GPT</p>
+<ul>
+<li>/dev/sda1 [EFI System Partition] (/boot/efi ; 521M)</li>
+<li>/dev/sda2 [Linux filesystem] (/ ; 50G)</li>
+<li>/dev/sda3 [Linux filesystem] (/home ; reste)</li>
+</ul>
+<p>On formate les partitions avec un système de fichier</p>
+<pre><code class="language-bash">mkfs.fat -F 32 /dev/sda1
+mkfs.ext4 /dev/sda2
+mkfs.ext4 /dev/sda3
+</code></pre>
+<p>On monte les partitions</p>
+<pre><code class="language-bash">mount /dev/sda2 /mnt
+mount --mkdir /dev/sda1 /mnt/boot/efi
+mount --mkdir /dev/sda3 /mnt/home
+</code></pre>
+<h2 id="installation">Installation</h2>
+<p>On installe le système de base</p>
+<pre><code class="language-bash">pacstrap -K /mnt base linux linux-firmware grub net-tools sudo glibc vim networkmanager network-manager-applet efibootmgr
+</code></pre>
+<p>Ensuite, on choisit un environnement de bureau (si vous en voulez un) :</p>
+<p>Si vous souhaitez GNOME, ajoutez ceci à la commande précédente : <code>gnome gnome-tweaks</code></p>
+<p>Si vous souhaitez KDE, ajoutez ceci à la commande précédente : <code>ark dolphin kate konsole plasma-meta plasma-workspace</code></p>
+<p>Si vous souhaitez Hyprland, ajoutez ceci à la commande précédente : <code>dolphin dunst grim hyprland kitty polkit-kde-agent qt5-wayland qt6-wayland slurp uwsm wofi xdg-desktop-portal-hyprland</code></p>
+<p>Enfin, rajoutez les paquets dont vous avez besoin.</p>
+<p>Si l'installation échoue et qu'il y a une erreur, exécutez :</p>
+<pre><code class="language-bash">pacman-key --init
+pacman-key --populate archlinux
+
+pacman -Sy archlinux-keyring
+
+pacman-key --populate archlinux
+</code></pre>
+<p>Et réessayez la commande</p>
+<p>Après cela on génère le fstab et on chroot</p>
+<pre><code class="language-bash">genfstab -U /mnt &gt;&gt; /mnt/etc/fstab
+arch-chroot /mnt
+</code></pre>
+<p>On ajoute manuellement le fuseau horaire</p>
+<pre><code class="language-bash">ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
+</code></pre>
+<p>On synchronise horloge matérielle et logicielle</p>
+<pre><code class="language-bash">hwclock --systohc
+</code></pre>
+<p>On charge la langue française</p>
+<pre><code class="language-bash">echo &quot;fr_FR.UTF-8 UTF-8&quot; &gt;&gt; /etc/locale.gen
+locale-gen
+</code></pre>
+<p>On change la langue du système</p>
+<pre><code class="language-bash">echo &quot;LANG=fr_FR.UTF-8&quot; &gt; /etc/locale.conf
+</code></pre>
+<p>On met le clavier en français</p>
+<pre><code class="language-bash">echo &quot;KEYMAP=fr
+XKBLAYOUT=fr&quot; &gt; /etc/vconsole.conf
+</code></pre>
+<p>On choisit un nom de machine</p>
+<pre><code class="language-bash">echo &quot;arch&quot; &gt; /etc/hostname
+</code></pre>
+<p>Enfin, on change le mot de passe root, puis on crée notre utilisateur qui aura les droits sudo</p>
+<pre><code class="language-bash">passwd
+
+useradd -G wheel -m &lt;nom d'utilisateur&gt;
+passwd &lt;nom d'utilisateur&gt;
+
+visudo # Décommenter %wheel ALL=(ALL:ALL) ALL
+</code></pre>
+<h2 id="configuration-du-grub">Configuration du GRUB</h2>
+<p>On installe le bootloader GRUB</p>
+<pre><code class="language-bash">grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+grub-mkconfig -o /boot/grub/grub.cfg
+</code></pre>
+<h2 id="finaliser">Finaliser</h2>
+<p>On active les différents services</p>
+<pre><code class="language-bash">systemctl enable bluetooth # Si vous avez du Bluetooth
+systemctl enable NetworkManager.service
+</code></pre>
+<h3 id="pour-gnome">Pour GNOME</h3>
+<pre><code class="language-bash">systemctl enable gdm.service
+</code></pre>
+<h3 id="pour-kde-et-hyprland">Pour KDE et Hyprland</h3>
+<pre><code class="language-bash">systemctl enable sddm.service
+</code></pre>
+<h2 id="quitter-et-redemarrer">Quitter et redémarrer</h2>
+<pre><code class="language-bash">exit
+umount -R /mnt
+reboot
+</code></pre>
+<h2 id="fin">Fin</h2>
+<p>Le système devrait désormais être complètement opérationnel !</p>
 
 
 
@@ -1486,7 +1734,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.indexes", "search.suggest", "search.highlight", "search.share", "header.autohide", "navigation.footer"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.indexes", "search.suggest", "search.highlight", "search.share", "header.autohide", "navigation.footer", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -1520,8 +1520,6 @@
 <h2 id="attention">Attention</h2>
 <h2 id="veuillez-bien-lire-les-commentaires-dans-le-code">Veuillez bien lire les commentaires dans le code !</h2>
 <h2 id="mettre-en-francais">Mettre en français</h2>
-<pre><code class="language-bash">timedatectl set-timezone Europe/Paris
-</code></pre>
 <h2 id="carte-wi-fi">Carte Wi-Fi</h2>
 <p>Si vous avez une carte Wi-Fi, connectez-vous à votre réseau :</p>
 <pre><code class="language-bash">iwctl
@@ -1547,16 +1545,13 @@ station &lt;name&gt; connect-hidden SSID          # Si caché
 </code></pre>
 <p>On choisit le 1ère option : GPT</p>
 <ul>
-<li>/dev/sda1 [EFI System Partition] (512M)</li>
+<li>/dev/sda1 [EFI System Partition] (/boot/efi ; 512M)</li>
 <li>/dev/sda2 [Linux filesystem] (/boot ; 1G)</li>
 <li>/dev/sda3 [Linux filesystem] (reste)</li>
 </ul>
+<p>On chiffre la partition</p>
 <pre><code class="language-bash">cryptsetup luksFormat /dev/sda3
-
-cryptsetup open /dev/sda3 crypthlvm
-
-mkfs.fat -F 32 /dev/sda1
-mkfs.ext4 /dev/sda2
+cryptsetup open /dev/sda3 cryptlvm
 </code></pre>
 <p>On crée le LVM</p>
 <pre><code class="language-bash">pvcreate /dev/mapper/cryptlvm
@@ -1564,7 +1559,10 @@ vgcreate vg0 /dev/mapper/cryptlvm
 
 lvcreate -L 40G vg0 -n root
 lvcreate -l 100%FREE vg0 -n home
-
+</code></pre>
+<p>On formate les partitions avec un système de fichier</p>
+<pre><code class="language-bash">mkfs.fat -F 32 /dev/sda1
+mkfs.ext4 /dev/sda2
 mkfs.ext4 /dev/vg0/root
 mkfs.ext4 /dev/vg0/home
 </code></pre>
@@ -1582,6 +1580,7 @@ mount --mkdir /dev/sda1 /mnt/boot/efi
 <p>Si vous souhaitez GNOME, ajoutez ceci à la commande précédente : <code>gnome gnome-tweaks</code></p>
 <p>Si vous souhaitez KDE, ajoutez ceci à la commande précédente : <code>ark dolphin kate konsole plasma-meta plasma-workspace</code></p>
 <p>Si vous souhaitez Hyprland, ajoutez ceci à la commande précédente : <code>dolphin dunst grim hyprland kitty polkit-kde-agent qt5-wayland qt6-wayland slurp uwsm wofi xdg-desktop-portal-hyprland</code></p>
+<p>Enfin, rajoutez les paquets dont vous avez besoin.</p>
 <p>Si l'installation échoue et qu'il y a une erreur, exécutez :</p>
 <pre><code class="language-bash">pacman-key --init
 pacman-key --populate archlinux
@@ -1591,22 +1590,34 @@ pacman -Sy archlinux-keyring
 pacman-key --populate archlinux
 </code></pre>
 <p>Et réessayez la commande</p>
-<p>Après cela :</p>
+<p>Après cela on génère le fstab et on chroot</p>
 <pre><code class="language-bash">genfstab -U /mnt &gt;&gt; /mnt/etc/fstab
 arch-chroot /mnt
-
-ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
-hwclock --systohc
-echo &quot;fr_FR.UTF-8 UTF-8&quot; &gt;&gt; /etc/locale.gen
-locale-gen
-echo &quot;LANG=fr_FR.UTF-8&quot; &gt; /etc/locale.conf
-echo &quot;KEYMAP=fr-latin1&quot; &gt; /etc/vconsole.conf
-echo &quot;arch&quot; &gt; /etc/hostname
 </code></pre>
-<p>Editer le fichier <code>/etc/mkinitcpio.conf</code>. Il faut qu la ligne suivante soit <strong>exactement</strong> comme suit :</p>
+<p>On ajoute manuellement le fuseau horaire</p>
+<pre><code class="language-bash">ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
+</code></pre>
+<p>On synchronise horloge matérielle et logicielle</p>
+<pre><code class="language-bash">hwclock --systohc
+</code></pre>
+<p>On charge la langue française</p>
+<pre><code class="language-bash">echo &quot;fr_FR.UTF-8 UTF-8&quot; &gt;&gt; /etc/locale.gen
+locale-gen
+</code></pre>
+<p>On change la langue du système</p>
+<pre><code class="language-bash">echo &quot;LANG=fr_FR.UTF-8&quot; &gt; /etc/locale.conf
+</code></pre>
+<p>On met le clavier en français</p>
+<pre><code class="language-bash">echo &quot;KEYMAP=fr
+XKBLAYOUT=fr&quot; &gt; /etc/vconsole.conf
+</code></pre>
+<p>On choisit un nom de machine</p>
+<pre><code class="language-bash">echo &quot;arch&quot; &gt; /etc/hostname
+</code></pre>
+<p>Editer le fichier <code>/etc/mkinitcpio.conf</code>. Il faut que la ligne suivante soit <strong>exactement</strong> comme suit :</p>
 <pre><code class="language-bash">HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block encrypt lvm2 filesystems fsck)
 </code></pre>
-<p>Puis on regénère l'initramsfs</p>
+<p>Puis on regénère l'initramfs</p>
 <pre><code class="language-bash">mkinitcpio -P
 </code></pre>
 <p>Enfin, on change le mot de passe root, puis on crée notre utilisateur qui aura les droits sudo</p>
@@ -1631,16 +1642,14 @@ grub-mkconfig -o /boot/grub/grub.cfg
 </code></pre>
 <h2 id="finaliser">Finaliser</h2>
 <p>On active les différents services</p>
-<pre><code class="language-bash">systemctl enable --now bluetooth # Si vous avez du Bluetooth
-systemctl enable --now NetworkManager.service
+<pre><code class="language-bash">systemctl enable bluetooth # Si vous avez du Bluetooth
+systemctl enable NetworkManager.service
 </code></pre>
 <h3 id="pour-gnome">Pour GNOME</h3>
 <pre><code class="language-bash">systemctl enable gdm.service
-systemctl start gdm.service
 </code></pre>
 <h3 id="pour-kde-et-hyprland">Pour KDE et Hyprland</h3>
 <pre><code class="language-bash">systemctl enable sddm.service
-systemctl start sddm.service
 </code></pre>
 <h2 id="quitter-et-redemarrer">Quitter et redémarrer</h2>
 <pre><code class="language-bash">exit
@@ -1763,7 +1772,7 @@ reboot
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.indexes", "search.suggest", "search.highlight", "search.share", "header.autohide", "navigation.footer"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.indexes", "search.suggest", "search.highlight", "search.share", "header.autohide", "navigation.footer", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
