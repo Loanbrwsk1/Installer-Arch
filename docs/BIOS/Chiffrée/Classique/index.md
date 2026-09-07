@@ -7,12 +7,6 @@ hide:
 
 ## Veuillez bien lire les commentaires dans le code !
 
-## Mettre en français
-
-```bash
-timedatectl set-timezone Europe/Paris
-```
-
 ## Carte Wi-Fi
 
 Si vous avez une carte Wi-Fi, connectez-vous à votre réseau :
@@ -49,15 +43,25 @@ On choisit le 1ère option : GPT
 - /dev/sda2 [Linux filesystem] (/ ; 50G)
 - /dev/sda3 [Linux filesystem] (/home)
 
+On chiffre les partitions
+
 ```bash
 cryptsetup luksFormat /dev/sda2
-cryptsetup luksFormat /dev/sda3
-
 cryptsetup open /dev/sda2 cryptroot
+cryptsetup luksFormat /dev/sda3
 cryptsetup open /dev/sda3 crypthome
+```
+
+On formate les partitions avec un système de fichier
+
+```bash
 mkfs.ext4 /dev/mapper/cryptroot
 mkfs.ext4 /dev/mapper/crypthome
+```
 
+On monte les parititons
+
+```bash
 mount /dev/mapper/cryptroot /mnt
 mount --mkdir /dev/mapper/crypthome /mnt/home
 ```
@@ -91,28 +95,58 @@ pacman-key --populate archlinux
 
 Et réessayez la commande
 
-Après cela :
+Après cela on génère le fstab et on chroot
 
 ```bash
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt
+```
 
+On ajoute manuellement le fuseau horaire
+
+```bash
 ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
+```
+
+On synchronise horloge matérielle et logicielle
+
+```bash
 hwclock --systohc
+```
+
+On charge la langue française
+
+```bash
 echo "fr_FR.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
+```
+
+On change la langue du système
+
+```bash
 echo "LANG=fr_FR.UTF-8" > /etc/locale.conf
-echo "KEYMAP=fr-latin1" > /etc/vconsole.conf
+```
+
+On met le clavier en français
+
+```bash
+echo "KEYMAP=fr
+XKBLAYOUT=fr" > /etc/vconsole.conf
+```
+
+On choisit un nom de machine
+
+```bash
 echo "arch" > /etc/hostname
 ```
 
-Editer le fichier ```/etc/mkinitcpio.conf```. Il faut qu la ligne suivante soit **exactement** comme suit :
+Editer le fichier ```/etc/mkinitcpio.conf```. Il faut que la ligne suivante soit **exactement** comme suit :
 
 ```bash
 HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block encrypt filesystems fsck)
 ```
 
-Puis on regénère l'initramsfs
+Puis on regénère l'initramfs
 
 ```bash
 mkinitcpio -P
@@ -165,14 +199,12 @@ systemctl enable --now NetworkManager.service
 
 ```bash
 systemctl enable gdm.service
-systemctl start gdm.service
 ```
 
 ### Pour KDE et Hyprland
 
 ```bash
 systemctl enable sddm.service
-systemctl start sddm.service
 ```
 
 ## Quitter et redémarrer

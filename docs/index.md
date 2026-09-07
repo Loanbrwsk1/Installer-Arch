@@ -7,7 +7,7 @@
 ## Mettre en français
 
 ```bash
-loadkeys fr-latin1 # On est en QWERTY donc on écrira : loqdkeys fr)lqtin&
+loadkeys fr # On est en QWERTY donc on écrira : loqdkeys fr
 ```
 
 ## Vérifier EFI ou BIOS

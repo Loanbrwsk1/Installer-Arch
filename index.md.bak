@@ -85,8 +85,8 @@ mount /dev/arch_VG/root_LV /mnt
 mount --mkdir /dev/arch_VH/home_LV /mnt/home
 mount --mkdir /dev/sda2 /mnt/boot/efi
 ```
-rajouter lvm2 dans /etc/mkinitcpio.conf avant filsystem
 
+rajouter lvm2 dans /etc/mkinitcpio.conf avant filsystem
 
 rajouter lvm2 dans /etc/mkinitcpio.conf avant filsystem
 

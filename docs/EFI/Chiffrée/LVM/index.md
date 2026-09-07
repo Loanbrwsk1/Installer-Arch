@@ -9,10 +9,6 @@ hide:
 
 ## Mettre en français
 
-```bash
-timedatectl set-timezone Europe/Paris
-```
-
 ## Carte Wi-Fi
 
 Si vous avez une carte Wi-Fi, connectez-vous à votre réseau :
@@ -45,17 +41,15 @@ cfdisk
 
 On choisit le 1ère option : GPT
 
-- /dev/sda1 [EFI System Partition] (512M)
+- /dev/sda1 [EFI System Partition] (/boot/efi ; 512M)
 - /dev/sda2 [Linux filesystem] (/boot ; 1G)
 - /dev/sda3 [Linux filesystem] (reste)
 
+On chiffre la partition
+
 ```bash
 cryptsetup luksFormat /dev/sda3
-
-cryptsetup open /dev/sda3 crypthlvm
-
-mkfs.fat -F 32 /dev/sda1
-mkfs.ext4 /dev/sda2
+cryptsetup open /dev/sda3 cryptlvm
 ```
 
 On crée le LVM
@@ -66,7 +60,13 @@ vgcreate vg0 /dev/mapper/cryptlvm
 
 lvcreate -L 40G vg0 -n root
 lvcreate -l 100%FREE vg0 -n home
+```
 
+On formate les partitions avec un système de fichier
+
+```bash
+mkfs.fat -F 32 /dev/sda1
+mkfs.ext4 /dev/sda2
 mkfs.ext4 /dev/vg0/root
 mkfs.ext4 /dev/vg0/home
 ```
@@ -96,6 +96,8 @@ Si vous souhaitez KDE, ajoutez ceci à la commande précédente : ```ark dolphin
 
 Si vous souhaitez Hyprland, ajoutez ceci à la commande précédente : ```dolphin dunst grim hyprland kitty polkit-kde-agent qt5-wayland qt6-wayland slurp uwsm wofi xdg-desktop-portal-hyprland```
 
+Enfin, rajoutez les paquets dont vous avez besoin.
+
 Si l'installation échoue et qu'il y a une erreur, exécutez :
 
 ```bash
@@ -109,28 +111,58 @@ pacman-key --populate archlinux
 
 Et réessayez la commande
 
-Après cela :
+Après cela on génère le fstab et on chroot
 
 ```bash
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt
+```
 
+On ajoute manuellement le fuseau horaire
+
+```bash
 ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
+```
+
+On synchronise horloge matérielle et logicielle
+
+```bash
 hwclock --systohc
+```
+
+On charge la langue française
+
+```bash
 echo "fr_FR.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
+```
+
+On change la langue du système
+
+```bash
 echo "LANG=fr_FR.UTF-8" > /etc/locale.conf
-echo "KEYMAP=fr-latin1" > /etc/vconsole.conf
+```
+
+On met le clavier en français
+
+```bash
+echo "KEYMAP=fr
+XKBLAYOUT=fr" > /etc/vconsole.conf
+```
+
+On choisit un nom de machine
+
+```bash
 echo "arch" > /etc/hostname
 ```
 
-Editer le fichier ```/etc/mkinitcpio.conf```. Il faut qu la ligne suivante soit **exactement** comme suit :
+Editer le fichier ```/etc/mkinitcpio.conf```. Il faut que la ligne suivante soit **exactement** comme suit :
 
 ```bash
 HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block encrypt lvm2 filesystems fsck)
 ```
 
-Puis on regénère l'initramsfs
+Puis on regénère l'initramfs
 
 ```bash
 mkinitcpio -P
@@ -175,22 +207,20 @@ grub-mkconfig -o /boot/grub/grub.cfg
 On active les différents services
 
 ```bash
-systemctl enable --now bluetooth # Si vous avez du Bluetooth
-systemctl enable --now NetworkManager.service
+systemctl enable bluetooth # Si vous avez du Bluetooth
+systemctl enable NetworkManager.service
 ```
 
 ### Pour GNOME
 
 ```bash
 systemctl enable gdm.service
-systemctl start gdm.service
 ```
 
 ### Pour KDE et Hyprland
 
 ```bash
 systemctl enable sddm.service
-systemctl start sddm.service
 ```
 
 ## Quitter et redémarrer
