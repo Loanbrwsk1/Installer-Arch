@@ -313,32 +313,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#attention" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Attention
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#veuillez-bien-lire-les-commentaires-dans-le-code" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Veuillez bien lire les commentaires dans le code !
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#mettre-en-francais" class="md-nav__link">
     <span class="md-ellipsis">
       
         Mettre en français
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wi-fi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wi-Fi
       
     </span>
   </a>
@@ -1364,32 +1353,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#attention" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Attention
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#veuillez-bien-lire-les-commentaires-dans-le-code" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Veuillez bien lire les commentaires dans le code !
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#mettre-en-francais" class="md-nav__link">
     <span class="md-ellipsis">
       
         Mettre en français
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wi-fi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wi-Fi
       
     </span>
   </a>
@@ -1444,10 +1422,23 @@
 
 
 <h1 id="arch-installation">Arch Installation</h1>
-<h2 id="attention">Attention</h2>
-<h2 id="veuillez-bien-lire-les-commentaires-dans-le-code">Veuillez bien lire les commentaires dans le code !</h2>
 <h2 id="mettre-en-francais">Mettre en français</h2>
+<p>D'abord, pour plus de simplicité d'écriture, on va charger le clavier français AZERTY</p>
 <pre><code class="language-bash">loadkeys fr # On est en QWERTY donc on écrira : loqdkeys fr
+</code></pre>
+<h2 id="wi-fi">Wi-Fi</h2>
+<p>Si vous installez Arch depuis un PC qui n'est pas relié en réseau via un câble, il faut initialiser le Wi-Fi</p>
+<pre><code class="language-bash">iwctl
+device list
+
+device &lt;name&gt; set-property Powered on       # Si off
+adapter &lt;adapter&gt; set-property Powered on   # Si off
+
+station &lt;name&gt; scan
+station &lt;name&gt; get-networks
+station &lt;name&gt; connect SSID
+
+station &lt;name&gt; connect-hidden SSID          # Si caché
 </code></pre>
 <h2 id="verifier-efi-ou-bios">Vérifier EFI ou BIOS</h2>
 <p>Pour savoir ce qui tourne entre l'EFI ou le BIOS exécutez :</p>
