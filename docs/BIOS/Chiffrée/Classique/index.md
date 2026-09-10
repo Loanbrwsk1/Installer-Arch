@@ -3,33 +3,11 @@ hide:
 
 # BIOS - Chiffrée - Classique
 
-## Attention
-
-## Veuillez bien lire les commentaires dans le code !
-
-## Carte Wi-Fi
-
-Si vous avez une carte Wi-Fi, connectez-vous à votre réseau :
-
-```bash
-iwctl
-device list
-
-device <name> set-property Powered on       # Si off
-adapter <adapter> set-property Powered on   # Si off
-
-station <name> scan
-station <name> get-networks
-station <name> connect SSID
-
-station <name> connect-hidden SSID          # Si caché
-```
-
 ## Partitionnement du disque
 
 Ici, nous allons faire 3 partitions :
 
-- BIOS boot
+- BIOS Boot
 - /
 - /home
 
@@ -39,7 +17,7 @@ cfdisk
 
 On choisit le 1ère option : GPT
 
-- /dev/sda1 [BIOS boot] (1G)
+- /dev/sda1 [BIOS Boot] (1G)
 - /dev/sda2 [Linux filesystem] (/ ; 50G)
 - /dev/sda3 [Linux filesystem] (/home)
 
@@ -82,6 +60,8 @@ Si vous souhaitez KDE, ajoutez ceci à la commande précédente : ```ark dolphin
 
 Si vous souhaitez Hyprland, ajoutez ceci à la commande précédente : ```dolphin dunst grim hyprland kitty polkit-kde-agent qt5-wayland qt6-wayland slurp uwsm wofi xdg-desktop-portal-hyprland```
 
+Enfin, installez les paquets dont vous avez besoin.
+
 Si l'installation échoue et qu'il y a une erreur, exécutez :
 
 ```bash
@@ -94,6 +74,8 @@ pacman-key --populate archlinux
 ```
 
 Et réessayez la commande
+
+## Configuration
 
 Après cela on génère le fstab et on chroot
 
@@ -152,7 +134,7 @@ Puis on regénère l'initramfs
 mkinitcpio -P
 ```
 
-Enfin, on change le mot de passe root, puis on crée notre utilisateur qui aura les droits sudo
+On change le mot de passe root, puis on crée notre utilisateur qui aura les droits sudo
 
 ```bash
 passwd
@@ -163,21 +145,101 @@ passwd <nom d'utilisateur>
 visudo # Décommenter %wheel ALL=(ALL:ALL) ALL
 ```
 
-## Configuration du GRUB
+### Dévérouillage automatique
 
-On récupère l'UUID de la partition root, ici /dev/sda2
+Ici, étant donné que nous avons deux paritions chiffrées, au démarrage il faudra dévérouiller les 2 partitions individuellement avec le même mot de passe défini précédemment.
+Pour éviter cela, je choisis de devoir entrer le mot de passe de la partition root mais que la partition home se déchiffre toute seul, à vous de choisir si vous voulez que votre système se déchiffre tout seul ou non, tout sera expliqué.
+
+On génère une clé aléatoire pour notre keyfile
 
 ```bash
-blkid /dev/sda2
+dd bs=512 count=4 if=/dev/random of=/etc/cryptsetup-keys.d/crypt.key iflag=fullblock # Généré par Claude Sonnet 4.6
+chmod 600 /etc/cryptsetup-keys.d/crypt.key
+```
+
+On ajoute notre keyfile sur la ou les partitions que l'on souhaite dévérouiller automatiquement. Si vous souhaitez déchiffrer également cryptroot, la commande à l'identique en modifiant la parition pour qu'elle corresponde à la parition root (ici /dev/sda3) suffira. Cette commande vous demandera un mot de passe, évidemment entrez le même mot de passe que précédemment pour la partition.
+
+```bash
+cryptsetup luksAddKey /dev/sda4 /etc/cryptsetup-keys.d/crypt.key
+```
+
+On récupère l'UUID des partitions root et home, ici /dev/sda3 et /dev/sda4 :
+
+```bash
+blkid /dev/sda3
+blkid /dev/sda4
+```
+
+On édite le fichier ```/etc/crypttab```. Si vous souhaitez tout déchiffrer, il suffit de remplacer ```none``` par le même ligne du dessous qui correspond au fichier
+
+```bash
+cryptroot  UUID=<UUID-de-sda3>  none                                    luks
+crypthome  UUID=<UUID-de-sda4>  /etc/cryptsetup-keys.d/crypt.key    luks
+```
+
+Editer le fichier ```/etc/mkinitcpio.conf``` et modifiez cette ligne pour qu'elle contienne le chemin du keyfile
+
+```bash
+FILES=(/etc/cryptsetup-keys.d/crypt.key)
+```
+
+Puis on regénère l'initramfs
+
+```bash
+mkinitcpio -P
+```
+
+### Configuration du GRUB
+
+Ici, étant donné que nous avons deux paritions chiffrées, au démarrage il faudra dévérouiller les 2 partitions individuellement avec le même mot de passe défini précédemment.
+Pour éviter cela, je choisis de devoir entrer le mot de passe de la partition root mais que la partition home se déchiffre toute seul, à vous de choisir si vous voulez que votre système se déchiffre tout seul ou non, tout sera expliqué.
+
+On génère une clé aléatoire pour notre keyfile
+
+```bash
+dd bs=512 count=4 if=/dev/random of=/etc/cryptsetup-keys.d/crypthome.key iflag=fullblock
+chmod 600 /etc/cryptsetup-keys.d/crypthome.key
+```
+
+On ajoute notre keyfile sur la ou les partitions que l'on souhaite dévérouiller automatiquement. Si vous souhaitez déchiffrer également cryptroot, la commande à l'identique en modifiant la parition pour qu'elle corresponde à la parition root (ici /dev/sda3) suffira. Cette commande vous demandera un mot de passe, évidemment entrez le même mot de passe que précédemment.
+
+```bash
+cryptsetup luksAddKey /dev/sda4 /etc/cryptsetup-keys.d/crypthome.key
+```
+
+On récupère l'UUID des partitions root et home, ici /dev/sda3 et /dev/sda4 :
+
+```bash
+blkid /dev/sda3
+blkid /dev/sda4
+```
+
+On édite le fichier ```/etc/crypttab```. Si vous souhaitez tout déchiffrer, il suffit de remplacer ```none``` par le même ligne du dessous qui correspond au fichier
+
+```bash
+cryptroot  UUID=<UUID-de-sda3>  none                                    luks
+crypthome  UUID=<UUID-de-sda4>  /etc/cryptsetup-keys.d/crypthome.key    luks
 ```
 
 On édite ```/etc/default/grub```
 
 ```bash
-GRUB_CMDLINE_LINUX="cryptdevice=UUID=<UUID-de-sda2>:cryptroot root=/dev/mapper/cryptroot"
+GRUB_CMDLINE_LINUX="cryptdevice=UUID=<UUID-de-sda3>:cryptroot root=/dev/mapper/cryptroot"
 ```
 
 Et on décomment le ligne ```GRUB_ENABLE_CRYPTODISK=y```
+
+On modifie aussi ```/etc/mkinitcpio.conf```
+
+```bash
+FILES=(/etc/cryptsetup-keys.d/crypthome.key)
+```
+
+Et on régénère
+
+```bash
+mkinitcpio -P
+```
 
 On installe le bootloader GRUB
 
@@ -195,13 +257,13 @@ systemctl enable --now bluetooth # Si vous avez du Bluetooth
 systemctl enable --now NetworkManager.service
 ```
 
-### Pour GNOME
+Si vous avez choisi GNOME commen environnement de bureau, démarrez ce service
 
 ```bash
 systemctl enable gdm.service
 ```
 
-### Pour KDE et Hyprland
+Sinon pour KDE ou Hyprland, démarrez clui-ci
 
 ```bash
 systemctl enable sddm.service

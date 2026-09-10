@@ -1,13 +1,29 @@
 ﻿# Arch Installation
 
-## Attention
-
-## Veuillez bien lire les commentaires dans le code !
-
 ## Mettre en français
+
+D'abord, pour plus de simplicité d'écriture, on va charger le clavier français AZERTY
 
 ```bash
 loadkeys fr # On est en QWERTY donc on écrira : loqdkeys fr
+```
+
+## Wi-Fi
+
+Si vous installez Arch depuis un PC qui n'est pas relié en réseau via un câble, il faut initialiser le Wi-Fi
+
+```bash
+iwctl
+device list
+
+device <name> set-property Powered on       # Si off
+adapter <adapter> set-property Powered on   # Si off
+
+station <name> scan
+station <name> get-networks
+station <name> connect SSID
+
+station <name> connect-hidden SSID          # Si caché
 ```
 
 ## Vérifier EFI ou BIOS

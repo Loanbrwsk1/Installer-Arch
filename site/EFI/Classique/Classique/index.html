@@ -1274,39 +1274,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#attention" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Attention
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#veuillez-bien-lire-les-commentaires-dans-le-code" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Veuillez bien lire les commentaires dans le code !
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#carte-wi-fi" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Carte Wi-Fi
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#partitionnement-du-disque" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1329,6 +1296,18 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#configuration-du-grub" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1336,6 +1315,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1347,34 +1331,6 @@
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Finaliser">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#pour-gnome" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pour GNOME
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pour-kde-et-hyprland" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pour KDE et Hyprland
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1506,22 +1462,6 @@
 
 
 <h1 id="efi-classique-classique">EFI - Classique - Classique</h1>
-<h2 id="attention">Attention</h2>
-<h2 id="veuillez-bien-lire-les-commentaires-dans-le-code">Veuillez bien lire les commentaires dans le code !</h2>
-<h2 id="carte-wi-fi">Carte Wi-Fi</h2>
-<p>Si vous avez une carte Wi-Fi, connectez-vous à votre réseau :</p>
-<pre><code class="language-bash">iwctl
-device list
-
-device &lt;name&gt; set-property Powered on       # Si off
-adapter &lt;adapter&gt; set-property Powered on   # Si off
-
-station &lt;name&gt; scan
-station &lt;name&gt; get-networks
-station &lt;name&gt; connect SSID
-
-station &lt;name&gt; connect-hidden SSID          # Si caché
-</code></pre>
 <h2 id="partitionnement-du-disque">Partitionnement du disque</h2>
 <p>Ici, nous allons faire 3 partitions :</p>
 <ul>
@@ -1565,6 +1505,7 @@ pacman -Sy archlinux-keyring
 pacman-key --populate archlinux
 </code></pre>
 <p>Et réessayez la commande</p>
+<h2 id="configuration">Configuration</h2>
 <p>Après cela on génère le fstab et on chroot</p>
 <pre><code class="language-bash">genfstab -U /mnt &gt;&gt; /mnt/etc/fstab
 arch-chroot /mnt
@@ -1597,9 +1538,9 @@ passwd &lt;nom d'utilisateur&gt;
 
 visudo # Décommenter %wheel ALL=(ALL:ALL) ALL
 </code></pre>
-<h2 id="configuration-du-grub">Configuration du GRUB</h2>
+<h3 id="configuration-du-grub">Configuration du GRUB</h3>
 <p>On installe le bootloader GRUB</p>
-<pre><code class="language-bash">grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+<pre><code class="language-bash">grub-install --target=x86_64-efi
 grub-mkconfig -o /boot/grub/grub.cfg
 </code></pre>
 <h2 id="finaliser">Finaliser</h2>
@@ -1607,10 +1548,10 @@ grub-mkconfig -o /boot/grub/grub.cfg
 <pre><code class="language-bash">systemctl enable bluetooth # Si vous avez du Bluetooth
 systemctl enable NetworkManager.service
 </code></pre>
-<h3 id="pour-gnome">Pour GNOME</h3>
+<p>Si vous avez choisi GNOME commen environnement de bureau, démarrez ce service</p>
 <pre><code class="language-bash">systemctl enable gdm.service
 </code></pre>
-<h3 id="pour-kde-et-hyprland">Pour KDE et Hyprland</h3>
+<p>Sinon pour KDE ou Hyprland, démarrez clui-ci</p>
 <pre><code class="language-bash">systemctl enable sddm.service
 </code></pre>
 <h2 id="quitter-et-redemarrer">Quitter et redémarrer</h2>

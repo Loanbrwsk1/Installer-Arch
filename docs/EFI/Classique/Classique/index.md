@@ -3,28 +3,6 @@ hide:
 
 # EFI - Classique - Classique
 
-## Attention
-
-## Veuillez bien lire les commentaires dans le code !
-
-## Carte Wi-Fi
-
-Si vous avez une carte Wi-Fi, connectez-vous à votre réseau :
-
-```bash
-iwctl
-device list
-
-device <name> set-property Powered on       # Si off
-adapter <adapter> set-property Powered on   # Si off
-
-station <name> scan
-station <name> get-networks
-station <name> connect SSID
-
-station <name> connect-hidden SSID          # Si caché
-```
-
 ## Partitionnement du disque
 
 Ici, nous allons faire 3 partitions :
@@ -90,6 +68,8 @@ pacman-key --populate archlinux
 
 Et réessayez la commande
 
+## Configuration
+
 Après cela on génère le fstab et on chroot
 
 ```bash
@@ -146,12 +126,12 @@ passwd <nom d'utilisateur>
 visudo # Décommenter %wheel ALL=(ALL:ALL) ALL
 ```
 
-## Configuration du GRUB
+### Configuration du GRUB
 
 On installe le bootloader GRUB
 
 ```bash
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+grub-install --target=x86_64-efi
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
@@ -164,13 +144,13 @@ systemctl enable bluetooth # Si vous avez du Bluetooth
 systemctl enable NetworkManager.service
 ```
 
-### Pour GNOME
+Si vous avez choisi GNOME commen environnement de bureau, démarrez ce service
 
 ```bash
 systemctl enable gdm.service
 ```
 
-### Pour KDE et Hyprland
+Sinon pour KDE ou Hyprland, démarrez clui-ci
 
 ```bash
 systemctl enable sddm.service

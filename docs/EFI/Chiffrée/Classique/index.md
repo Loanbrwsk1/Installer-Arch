@@ -3,28 +3,6 @@ hide:
 
 # EFI - Chiffrée - Classique
 
-## Attention
-
-## Veuillez bien lire les commentaires dans le code !
-
-## Carte Wi-Fi
-
-Si vous avez une carte Wi-Fi, connectez-vous à votre réseau :
-
-```bash
-iwctl
-device list
-
-device <name> set-property Powered on       # Si off
-adapter <adapter> set-property Powered on   # Si off
-
-station <name> scan
-station <name> get-networks
-station <name> connect SSID
-
-station <name> connect-hidden SSID          # Si caché
-```
-
 ## Partitionnement du disque
 
 Ici, nous allons faire 4 partitions :
@@ -45,7 +23,7 @@ On choisit le 1ère option : GPT
 - /dev/sda3 [Linux filesystem] (/ ; 50G)
 - /dev/sda4 [Linux filesystem] (/home ; reste)
 
-On chiffre la partition
+On chiffre la partition en mentrant le même mot de passe pour les deux partitions
 
 ```bash
 cryptsetup luksFormat /dev/sda3
@@ -77,7 +55,7 @@ mount --mkdir /dev/mapper/crypthome /mnt/home
 On installe le système de base
 
 ```bash
-pacstrap -K /mnt base linux linux-firmware grub net-tools sudo glibc vim networkmanager network-manager-applet cryptsetup efibootmgr
+pacstrap -K /mnt base linux linux-firmware grub net-tools sudo glibc vim networkmanager network-manager-applet efibootmgr cryptsetup
 ```
 
 Ensuite, on choisit un environnement de bureau (si vous en voulez un) :
@@ -102,6 +80,8 @@ pacman-key --populate archlinux
 ```
 
 Et réessayez la commande
+
+## Configuration
 
 Après cela on génère le fstab et on chroot
 
@@ -148,7 +128,7 @@ On choisit un nom de machine
 echo "arch" > /etc/hostname
 ```
 
-Editer le fichier ```/etc/mkinitcpio.conf```. Il faut qu la ligne suivante soit **exactement** comme suit :
+Editer le fichier ```/etc/mkinitcpio.conf```. Il faut que la ligne suivante soit **exactement** comme suit :
 
 ```bash
 HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block encrypt filesystems fsck)
@@ -160,7 +140,7 @@ Puis on regénère l'initramfs
 mkinitcpio -P
 ```
 
-Enfin, on change le mot de passe root, puis on crée notre utilisateur qui aura les droits sudo
+On change le mot de passe root, puis on crée notre utilisateur qui aura les droits sudo
 
 ```bash
 passwd
@@ -171,7 +151,51 @@ passwd <nom d'utilisateur>
 visudo # Décommenter %wheel ALL=(ALL:ALL) ALL
 ```
 
-## Configuration du GRUB
+### Dévérouillage automatique
+
+Ici, étant donné que nous avons deux paritions chiffrées, au démarrage il faudra dévérouiller les 2 partitions individuellement avec le même mot de passe défini précédemment.
+Pour éviter cela, je choisis de devoir entrer le mot de passe de la partition root mais que la partition home se déchiffre toute seul, à vous de choisir si vous voulez que votre système se déchiffre tout seul ou non, tout sera expliqué.
+
+On génère une clé aléatoire pour notre keyfile
+
+```bash
+dd bs=512 count=4 if=/dev/random of=/etc/cryptsetup-keys.d/crypt.key iflag=fullblock # Généré par Claude Sonnet 4.6
+chmod 600 /etc/cryptsetup-keys.d/crypt.key
+```
+
+On ajoute notre keyfile sur la ou les partitions que l'on souhaite dévérouiller automatiquement. Si vous souhaitez déchiffrer également cryptroot, la commande à l'identique en modifiant la parition pour qu'elle corresponde à la parition root (ici /dev/sda3) suffira. Cette commande vous demandera un mot de passe, évidemment entrez le même mot de passe que précédemment pour la partition.
+
+```bash
+cryptsetup luksAddKey /dev/sda4 /etc/cryptsetup-keys.d/crypt.key
+```
+
+On récupère l'UUID des partitions root et home, ici /dev/sda3 et /dev/sda4 :
+
+```bash
+blkid /dev/sda3
+blkid /dev/sda4
+```
+
+On édite le fichier ```/etc/crypttab```. Si vous souhaitez tout déchiffrer, il suffit de remplacer ```none``` par le même ligne du dessous qui correspond au fichier
+
+```bash
+cryptroot  UUID=<UUID-de-sda3>  none                                    luks
+crypthome  UUID=<UUID-de-sda4>  /etc/cryptsetup-keys.d/crypt.key    luks
+```
+
+Editer le fichier ```/etc/mkinitcpio.conf``` et modifiez cette ligne pour qu'elle contienne le chemin du keyfile
+
+```bash
+FILES=(/etc/cryptsetup-keys.d/crypt.key)
+```
+
+Puis on regénère l'initramfs
+
+```bash
+mkinitcpio -P
+```
+
+### Configuration du GRUB
 
 On récupère l'UUID de la partition root, ici /dev/sda3
 
@@ -190,7 +214,7 @@ Et on décomment le ligne ```GRUB_ENABLE_CRYPTODISK=y```
 On installe le bootloader GRUB
 
 ```bash
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+grub-install --target=x86_64-efi
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
@@ -203,13 +227,13 @@ systemctl enable bluetooth # Si vous avez du Bluetooth
 systemctl enable NetworkManager.service
 ```
 
-### Pour GNOME
+Si vous avez choisi GNOME commen environnement de bureau, démarrez ce service :
 
 ```bash
 systemctl enable gdm.service
 ```
 
-### Pour KDE et Hyprland
+Sinon pour KDE ou Hyprland, démarrez celui-ci :
 
 ```bash
 systemctl enable sddm.service

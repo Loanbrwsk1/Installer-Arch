@@ -3,30 +3,6 @@ hide:
 
 # EFI - Chiffrée - LVM
 
-## Attention
-
-## Veuillez bien lire les commentaires dans le code !
-
-## Mettre en français
-
-## Carte Wi-Fi
-
-Si vous avez une carte Wi-Fi, connectez-vous à votre réseau :
-
-```bash
-iwctl
-device list
-
-device <name> set-property Powered on       # Si off
-adapter <adapter> set-property Powered on   # Si off
-
-station <name> scan
-station <name> get-networks
-station <name> connect SSID
-
-station <name> connect-hidden SSID          # Si caché
-```
-
 ## Partitionnement du disque
 
 Ici, nous allons faire 3 partitions :
@@ -58,8 +34,8 @@ On crée le LVM
 pvcreate /dev/mapper/cryptlvm
 vgcreate vg0 /dev/mapper/cryptlvm
 
-lvcreate -L 40G vg0 -n root
-lvcreate -l 100%FREE vg0 -n home
+lvcreate -L 40G vg0 -n root # pour la partition root
+lvcreate -l 100%FREE vg0 -n home # pour la partition /home
 ```
 
 On formate les partitions avec un système de fichier
@@ -85,7 +61,7 @@ mount --mkdir /dev/sda1 /mnt/boot/efi
 On installe le système de base
 
 ```bash
-pacstrap -K /mnt base linux linux-firmware grub net-tools sudo glibc vim networkmanager network-manager-applet cryptsetup lvm2
+pacstrap -K /mnt base linux linux-firmware grub net-tools sudo glibc vim networkmanager network-manager-applet efibootmgr cryptsetup lvm2
 ```
 
 Ensuite, on choisit un environnement de bureau (si vous en voulez un) :
@@ -110,6 +86,8 @@ pacman-key --populate archlinux
 ```
 
 Et réessayez la commande
+
+## Configuration
 
 Après cela on génère le fstab et on chroot
 
@@ -159,7 +137,7 @@ echo "arch" > /etc/hostname
 Editer le fichier ```/etc/mkinitcpio.conf```. Il faut que la ligne suivante soit **exactement** comme suit :
 
 ```bash
-HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block encrypt lvm2 filesystems fsck)
+HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block encrypt filesystems fsck)
 ```
 
 Puis on regénère l'initramfs
@@ -168,7 +146,7 @@ Puis on regénère l'initramfs
 mkinitcpio -P
 ```
 
-Enfin, on change le mot de passe root, puis on crée notre utilisateur qui aura les droits sudo
+On change le mot de passe root, puis on crée notre utilisateur qui aura les droits sudo
 
 ```bash
 passwd
@@ -179,9 +157,51 @@ passwd <nom d'utilisateur>
 visudo # Décommenter %wheel ALL=(ALL:ALL) ALL
 ```
 
-## Configuration du GRUB
+### Dévérouillage automatique
 
-On récupère l'UUID de la partition root, ici /dev/sda2
+Au démarrage, il faudra dévérouiller la partition à la main avec le même mot de passe défini précédemment.
+Pour éviter cela, Il est possible de faire en sorte que le système la dévérouille toute seule.
+
+On génère une clé aléatoire pour notre keyfile
+
+```bash
+dd bs=512 count=4 if=/dev/random of=/etc/cryptsetup-keys.d/cryptlvm.key iflag=fullblock # Généré par Claude Sonnet 4.6
+chmod 600 /etc/cryptsetup-keys.d/cryptlvm.key
+```
+
+On ajoute notre keyfile sur la. Cette commande vous demandera un mot de passe, évidemment entrez le même mot de passe que précédemment pour la partition.
+
+```bash
+cryptsetup luksAddKey /dev/sda4 /etc/cryptsetup-keys.d/cryptlvm.key
+```
+
+On récupère l'UUID de la partition, ici /dev/sda3 :
+
+```bash
+blkid /dev/sda3
+```
+
+On édite le fichier ```/etc/crypttab```.
+
+```bash
+cryptlvm  UUID=<UUID-de-sda4>  /etc/cryptsetup-keys.d/cryptlvm.key    luks
+```
+
+Editer le fichier ```/etc/mkinitcpio.conf``` et modifiez cette ligne pour qu'elle contienne le chemin du keyfile
+
+```bash
+FILES=(/etc/cryptsetup-keys.d/cryptlvm.key)
+```
+
+Puis on regénère l'initramfs
+
+```bash
+mkinitcpio -P
+```
+
+### Configuration du GRUB
+
+On récupère l'UUID de la partition root, ici /dev/sda3
 
 ```bash
 blkid /dev/sda3
@@ -198,7 +218,7 @@ Et on décomment le ligne ```GRUB_ENABLE_CRYPTODISK=y```
 On installe le bootloader GRUB
 
 ```bash
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+grub-install --target=x86_64-efi
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
@@ -211,13 +231,13 @@ systemctl enable bluetooth # Si vous avez du Bluetooth
 systemctl enable NetworkManager.service
 ```
 
-### Pour GNOME
+Si vous avez choisi GNOME commen environnement de bureau, démarrez ce service :
 
 ```bash
 systemctl enable gdm.service
 ```
 
-### Pour KDE et Hyprland
+Sinon pour KDE ou Hyprland, démarrez celui-ci :
 
 ```bash
 systemctl enable sddm.service
