@@ -324,6 +324,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSH
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#wi-fi" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1364,6 +1375,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSH
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#wi-fi" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1426,6 +1448,20 @@
 <p>D'abord, pour plus de simplicité d'écriture, on va charger le clavier français AZERTY</p>
 <pre><code class="language-bash">loadkeys fr # On est en QWERTY donc on écrira : loqdkeys fr
 </code></pre>
+<h2 id="ssh">SSH</h2>
+<p>Pour plus de simplicité pour copier coller les commandes dans ce wiki et si vous en avez la possibilité, je vous conseille de mettre en place le SSH. Pour ce faire, changer le mot de passe root par un mot de passe simple comme <code>r</code>, ce mot de passe ne sera pas définitif et ne sert que pour l'authentification au live ISO et en aucun cas sur votre futur système.</p>
+<pre><code class="language-bash">passwd
+</code></pre>
+<p>Ensuite démarrez le service sshd</p>
+<pre><code class="language-bash">systemctl start sshd
+</code></pre>
+<p>Récupérez son IP</p>
+<pre><code class="language-bash">ip a
+</code></pre>
+<p>Enfin, avec un autre ordinateur relié à celui-ci en réseau, connectez-vous :</p>
+<pre><code class="language-bash">ssh root@&lt;ip-de-la-machine&gt;
+</code></pre>
+<p>Entrez le mot de passe entré à l'instant et vous êtes connecté.</p>
 <h2 id="wi-fi">Wi-Fi</h2>
 <p>Si vous installez Arch depuis un PC qui n'est pas relié en réseau via un câble, il faut initialiser le Wi-Fi</p>
 <pre><code class="language-bash">iwctl
