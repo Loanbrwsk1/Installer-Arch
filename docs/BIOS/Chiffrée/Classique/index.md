@@ -191,34 +191,10 @@ mkinitcpio -P
 
 ### Configuration du GRUB
 
-Ici, étant donné que nous avons deux paritions chiffrées, au démarrage il faudra dévérouiller les 2 partitions individuellement avec le même mot de passe défini précédemment.
-Pour éviter cela, je choisis de devoir entrer le mot de passe de la partition root mais que la partition home se déchiffre toute seul, à vous de choisir si vous voulez que votre système se déchiffre tout seul ou non, tout sera expliqué.
-
-On génère une clé aléatoire pour notre keyfile
-
-```bash
-dd bs=512 count=4 if=/dev/random of=/etc/cryptsetup-keys.d/crypthome.key iflag=fullblock
-chmod 600 /etc/cryptsetup-keys.d/crypthome.key
-```
-
-On ajoute notre keyfile sur la ou les partitions que l'on souhaite dévérouiller automatiquement. Si vous souhaitez déchiffrer également cryptroot, la commande à l'identique en modifiant la parition pour qu'elle corresponde à la parition root (ici /dev/sda3) suffira. Cette commande vous demandera un mot de passe, évidemment entrez le même mot de passe que précédemment.
-
-```bash
-cryptsetup luksAddKey /dev/sda4 /etc/cryptsetup-keys.d/crypthome.key
-```
-
-On récupère l'UUID des partitions root et home, ici /dev/sda3 et /dev/sda4 :
+On récupère l'UUID de la partition root, ici /dev/sda3 :
 
 ```bash
 blkid /dev/sda3
-blkid /dev/sda4
-```
-
-On édite le fichier ```/etc/crypttab```. Si vous souhaitez tout déchiffrer, il suffit de remplacer ```none``` par le même ligne du dessous qui correspond au fichier
-
-```bash
-cryptroot  UUID=<UUID-de-sda3>  none                                    luks
-crypthome  UUID=<UUID-de-sda4>  /etc/cryptsetup-keys.d/crypthome.key    luks
 ```
 
 On édite ```/etc/default/grub```
@@ -228,18 +204,6 @@ GRUB_CMDLINE_LINUX="cryptdevice=UUID=<UUID-de-sda3>:cryptroot root=/dev/mapper/c
 ```
 
 Et on décomment le ligne ```GRUB_ENABLE_CRYPTODISK=y```
-
-On modifie aussi ```/etc/mkinitcpio.conf```
-
-```bash
-FILES=(/etc/cryptsetup-keys.d/crypthome.key)
-```
-
-Et on régénère
-
-```bash
-mkinitcpio -P
-```
 
 On installe le bootloader GRUB
 
