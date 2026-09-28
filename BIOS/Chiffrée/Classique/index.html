@@ -1584,33 +1584,13 @@ crypthome  UUID=&lt;UUID-de-sda4&gt;  /etc/cryptsetup-keys.d/crypt.key    luks
 <pre><code class="language-bash">mkinitcpio -P
 </code></pre>
 <h3 id="configuration-du-grub">Configuration du GRUB</h3>
-<p>Ici, étant donné que nous avons deux paritions chiffrées, au démarrage il faudra dévérouiller les 2 partitions individuellement avec le même mot de passe défini précédemment.
-Pour éviter cela, je choisis de devoir entrer le mot de passe de la partition root mais que la partition home se déchiffre toute seul, à vous de choisir si vous voulez que votre système se déchiffre tout seul ou non, tout sera expliqué.</p>
-<p>On génère une clé aléatoire pour notre keyfile</p>
-<pre><code class="language-bash">dd bs=512 count=4 if=/dev/random of=/etc/cryptsetup-keys.d/crypthome.key iflag=fullblock
-chmod 600 /etc/cryptsetup-keys.d/crypthome.key
-</code></pre>
-<p>On ajoute notre keyfile sur la ou les partitions que l'on souhaite dévérouiller automatiquement. Si vous souhaitez déchiffrer également cryptroot, la commande à l'identique en modifiant la parition pour qu'elle corresponde à la parition root (ici /dev/sda3) suffira. Cette commande vous demandera un mot de passe, évidemment entrez le même mot de passe que précédemment.</p>
-<pre><code class="language-bash">cryptsetup luksAddKey /dev/sda4 /etc/cryptsetup-keys.d/crypthome.key
-</code></pre>
-<p>On récupère l'UUID des partitions root et home, ici /dev/sda3 et /dev/sda4 :</p>
+<p>On récupère l'UUID de la partition root, ici /dev/sda3 :</p>
 <pre><code class="language-bash">blkid /dev/sda3
-blkid /dev/sda4
-</code></pre>
-<p>On édite le fichier <code>/etc/crypttab</code>. Si vous souhaitez tout déchiffrer, il suffit de remplacer <code>none</code> par le même ligne du dessous qui correspond au fichier</p>
-<pre><code class="language-bash">cryptroot  UUID=&lt;UUID-de-sda3&gt;  none                                    luks
-crypthome  UUID=&lt;UUID-de-sda4&gt;  /etc/cryptsetup-keys.d/crypthome.key    luks
 </code></pre>
 <p>On édite <code>/etc/default/grub</code></p>
 <pre><code class="language-bash">GRUB_CMDLINE_LINUX=&quot;cryptdevice=UUID=&lt;UUID-de-sda3&gt;:cryptroot root=/dev/mapper/cryptroot&quot;
 </code></pre>
 <p>Et on décomment le ligne <code>GRUB_ENABLE_CRYPTODISK=y</code></p>
-<p>On modifie aussi <code>/etc/mkinitcpio.conf</code></p>
-<pre><code class="language-bash">FILES=(/etc/cryptsetup-keys.d/crypthome.key)
-</code></pre>
-<p>Et on régénère</p>
-<pre><code class="language-bash">mkinitcpio -P
-</code></pre>
 <p>On installe le bootloader GRUB</p>
 <pre><code class="language-bash">grub-install --target=i386-pc /dev/sda
 grub-mkconfig -o /boot/grub/grub.cfg
