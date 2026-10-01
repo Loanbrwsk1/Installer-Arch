@@ -1477,6 +1477,7 @@
 <p>Ici, nous allons faire 3 partitions :</p>
 <ul>
 <li>BIOS Boot</li>
+<li>/boot</li>
 <li>/</li>
 <li>/home</li>
 </ul>
@@ -1485,22 +1486,25 @@
 <p>On choisit le 1ère option : GPT</p>
 <ul>
 <li>/dev/sda1 [BIOS Boot] (1G)</li>
-<li>/dev/sda2 [Linux filesystem] (/ ; 50G)</li>
-<li>/dev/sda3 [Linux filesystem] (/home)</li>
+<li>/dev/sda2 [Linux filesystem] (/boot ; 1G)</li>
+<li>/dev/sda3 [Linux filesystem] (/ ; 50G)</li>
+<li>/dev/sda4 [Linux filesystem] (/home)</li>
 </ul>
 <p>On chiffre les partitions</p>
-<pre><code class="language-bash">cryptsetup luksFormat /dev/sda2
-cryptsetup open /dev/sda2 cryptroot
-cryptsetup luksFormat /dev/sda3
-cryptsetup open /dev/sda3 crypthome
+<pre><code class="language-bash">cryptsetup luksFormat /dev/sda3
+cryptsetup open /dev/sda3 cryptroot
+cryptsetup luksFormat /dev/sda4
+cryptsetup open /dev/sda4 crypthome
 </code></pre>
 <p>On formate les partitions avec un système de fichier</p>
-<pre><code class="language-bash">mkfs.ext4 /dev/mapper/cryptroot
+<pre><code class="language-bash">mkfs.ext4 /dev/sda2
+mkfs.ext4 /dev/mapper/cryptroot
 mkfs.ext4 /dev/mapper/crypthome
 </code></pre>
 <p>On monte les parititons</p>
 <pre><code class="language-bash">mount /dev/mapper/cryptroot /mnt
 mount --mkdir /dev/mapper/crypthome /mnt/home
+mount --mkdir /dev/sda2 /mnt/boot
 </code></pre>
 <h2 id="installation">Installation</h2>
 <p>On installe le système de base</p>
