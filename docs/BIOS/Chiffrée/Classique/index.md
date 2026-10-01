@@ -8,6 +8,7 @@ hide:
 Ici, nous allons faire 3 partitions :
 
 - BIOS Boot
+- /boot
 - /
 - /home
 
@@ -18,21 +19,23 @@ cfdisk
 On choisit le 1ère option : GPT
 
 - /dev/sda1 [BIOS Boot] (1G)
-- /dev/sda2 [Linux filesystem] (/ ; 50G)
-- /dev/sda3 [Linux filesystem] (/home)
+- /dev/sda2 [Linux filesystem] (/boot ; 1G)
+- /dev/sda3 [Linux filesystem] (/ ; 50G)
+- /dev/sda4 [Linux filesystem] (/home)
 
 On chiffre les partitions
 
 ```bash
-cryptsetup luksFormat /dev/sda2
-cryptsetup open /dev/sda2 cryptroot
 cryptsetup luksFormat /dev/sda3
-cryptsetup open /dev/sda3 crypthome
+cryptsetup open /dev/sda3 cryptroot
+cryptsetup luksFormat /dev/sda4
+cryptsetup open /dev/sda4 crypthome
 ```
 
 On formate les partitions avec un système de fichier
 
 ```bash
+mkfs.ext4 /dev/sda2
 mkfs.ext4 /dev/mapper/cryptroot
 mkfs.ext4 /dev/mapper/crypthome
 ```
@@ -42,6 +45,7 @@ On monte les parititons
 ```bash
 mount /dev/mapper/cryptroot /mnt
 mount --mkdir /dev/mapper/crypthome /mnt/home
+mount --mkdir /dev/sda2 /mnt/boot
 ```
 
 ## Installation
